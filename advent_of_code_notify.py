@@ -1,23 +1,33 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # advent_of_code_notify.py
 # Send a webhook notification when someone from an Advent Of Code
 # leaderboard solves a puzzle
 #
 # tofran, dec 2020
+# https://github.com/tofran/advent-of-code-leaderboard-notifier
 
 import os
 import requests
 import json
+from datetime import date
 
 LEADERBOARD_ENDPOINT_TEMPLATE = (
     "https://adventofcode.com/"
-    "{year}/leaderboard/private/view/{leaderboard_id}.json"
+    "{year}/leaderboard/private/view/{leaderboard_id}{extension}"
 )
 
 CACHE_FILE = os.getenv("CACHE_FILE", "./cache.json")
 
-ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", "2020"))
+
+def get_default_year():
+    today = date.today()
+    if today.month == 12:
+        return today.year
+    return today.year - 1
+
+
+ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", get_default_year()))
 ADVENT_OF_CODE_LEADERBOARD_ID = os.getenv("ADVENT_OF_CODE_LEADERBOARD_ID")
 ADVENT_OF_CODE_SESSION_ID = os.getenv("ADVENT_OF_CODE_SESSION_ID")
 
@@ -27,10 +37,15 @@ assert ADVENT_OF_CODE_LEADERBOARD_ID, "ADVENT_OF_CODE_LEADERBOARD_ID missing"
 assert ADVENT_OF_CODE_SESSION_ID, "ADVENT_OF_CODE_SESSION_ID missing"
 assert WEBHOOK_URL, "WEBHOOK_URL missing"
 
-LEADERBOARD_ENDPOINT = LEADERBOARD_ENDPOINT_TEMPLATE.format(
-    year=ADVENT_OF_CODE_YEAR,
-    leaderboard_id=ADVENT_OF_CODE_LEADERBOARD_ID,
-)
+WEBHOOK_MAX_CONTENT_LENGTH = int(os.getenv("WEBHOOK_MAX_CONTENT_LENGTH", "2000"))
+
+
+def get_leaderboard_enpoint(as_json_api=True):
+    return LEADERBOARD_ENDPOINT_TEMPLATE.format(
+        year=ADVENT_OF_CODE_YEAR,
+        leaderboard_id=ADVENT_OF_CODE_LEADERBOARD_ID,
+        extension=".json" if as_json_api else "",
+    )
 
 
 def get_cached_leaderboard():
@@ -52,7 +67,7 @@ def save_cached_leaderboard(data):
 
 def fetch_leaderboard():
     response = requests.get(
-        LEADERBOARD_ENDPOINT,
+        get_leaderboard_enpoint(as_json_api=True),
         cookies={
             "session": ADVENT_OF_CODE_SESSION_ID
         }
@@ -77,11 +92,16 @@ def get_name(leaderboard, member_id):
 
 
 def send_webhook_notification(content):
+    if len(content) > WEBHOOK_MAX_CONTENT_LENGTH:
+        content = "The diff is too big, check the leaderbord: {}".format(
+            get_leaderboard_enpoint(as_json_api=False)
+        )
+
     requests.post(
         WEBHOOK_URL,
-        data=json.dumps({
+        json={
             "content": content,
-        }),
+        },
         headers={"Content-Type": "application/json"}
     ).raise_for_status()
 
