@@ -1,10 +1,10 @@
 # Advent of code leaderboard notifier
 
-Send a webhook notification when someone from an Advent Of Code leaderboard solves a puzzle
+Send a webhook notification when someone from an Advent Of Code leaderboard solves a puzzle.
 
 I'm using this to track the progress of a group of friends on Discord.
 
-![Message example](https://user-images.githubusercontent.com/5692603/100946056-738cae80-34fa-11eb-833f-645b8ea2e116.png)
+![Example discord notification](https://user-images.githubusercontent.com/5692603/100946056-738cae80-34fa-11eb-833f-645b8ea2e116.png)
 
 ## Usage
 
@@ -26,7 +26,7 @@ $ docker run \
  - `ADVENT_OF_CODE_SESSION_ID`: Your advent of code session id.  
     To retrieve it, go visit adventofcode.com, open developer tools > storage > cookies > copy the value of your `session` cookie.
  - `WEBHOOK_URL`: Where to send the webhook. Can be for example a discord webhook.
- - `ADVENT_OF_CODE_YEAR`: Optional, defaults to `2020`
+ - `ADVENT_OF_CODE_YEAR`: Optional, defaults to the current year if already in december, otherwise the previous one.
  - `CACHE_FILE`: Optional, defaults to `./cache.json`
 
 
