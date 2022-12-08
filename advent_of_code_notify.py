@@ -121,6 +121,7 @@ def run():
     diff = get_leaderboard_diff(old_leaderboard, new_leaderboard)
 
     if not diff:
+        print("No changes detected.")
         return
 
     messages = [
@@ -146,6 +147,7 @@ def main():
     
     while True:
         run()
+        print(f"Sleeping {LOOP_SLEEP_SECONDS}s")
         sleep(LOOP_SLEEP_SECONDS)
 
 
