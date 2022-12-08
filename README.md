@@ -8,26 +8,32 @@ I'm using this to track the progress of a group of friends on Discord.
 
 ## Usage
 
-Just run this image periodically (at a minimum interval of 15 min):
+Just run this image whenever you want to check for updates:
 
 ```sh
 $ docker run \
   -e WEBHOOK_URL="your webhook url" \
   -e ADVENT_OF_CODE_SESSION_ID="your advent of code session id" \
   -e ADVENT_OF_CODE_LEADERBOARD_ID="numeric leaderboard id" \
-  -e CACHE_FILE=/cache/cache.json \
+  -e CACHE_FILE="/cache/cache.json" \
+  # (Optional) -e LOOP_SLEEP_SECONDS="900" \
   -v "$(pwd)/cache/:/cache/" \
   ghcr.io/tofran/advent-of-code-leaderboard-notifier
 ```
+
+It should exit successfully. Run it periodically (at a minimum interval of 15 min),
+or pass the `LOOP_SLEEP_SECONDS` env var to make the script loop.
 
 ### Configuration
 
  - `ADVENT_OF_CODE_LEADERBOARD_ID`: The unique ID of the leaderboard. It's an integer you can get from the end of leaderboard url or the prefix of the invite code.
  - `ADVENT_OF_CODE_SESSION_ID`: Your advent of code session id.  
-    To retrieve it, go visit adventofcode.com, open developer tools > storage > cookies > copy the value of your `session` cookie.
- - `WEBHOOK_URL`: Where to send the webhook. Can be for example a discord webhook.
+    To retrieve it, visit adventofcode.com, open developer tools > storage > cookies > copy the value of your `session` cookie.
+ - `WEBHOOK_URL`: Where to send the webhook. For example a Discord webhook URL.
  - `ADVENT_OF_CODE_YEAR`: Optional, defaults to the current year if already in december, otherwise the previous one.
  - `CACHE_FILE`: Optional, defaults to `./cache.json`
+ - `LOOP_SLEEP_SECONDS`: Optional, defaults to `0`, meaning it only runs once and terminates the process. Otherwise set it to how many seconds to sleep between runs. It is recommended a value greater than `900` (15 min).
+ - `WEBHOOK_MAX_CONTENT_LENGTH`: Optional, the maximum number of characters that can be sent to the webhook. Defaults to `2000`.
 
 
 ## License

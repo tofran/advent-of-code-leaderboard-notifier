@@ -7,10 +7,12 @@
 # tofran, dec 2020
 # https://github.com/tofran/advent-of-code-leaderboard-notifier
 
-import os
-import requests
 import json
+import os
 from datetime import date
+from time import sleep
+
+import requests
 
 LEADERBOARD_ENDPOINT_TEMPLATE = (
     "https://adventofcode.com/"
@@ -27,20 +29,19 @@ def get_default_year():
     return today.year - 1
 
 
-ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", get_default_year()))
 ADVENT_OF_CODE_LEADERBOARD_ID = os.getenv("ADVENT_OF_CODE_LEADERBOARD_ID")
 ADVENT_OF_CODE_SESSION_ID = os.getenv("ADVENT_OF_CODE_SESSION_ID")
-
+ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", get_default_year()))
+LOOP_SLEEP_SECONDS = int(os.getenv("LOOP_SLEEP_SECONDS", "0"))
+WEBHOOK_MAX_CONTENT_LENGTH = int(os.getenv("WEBHOOK_MAX_CONTENT_LENGTH", "2000"))
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 assert ADVENT_OF_CODE_LEADERBOARD_ID, "ADVENT_OF_CODE_LEADERBOARD_ID missing"
 assert ADVENT_OF_CODE_SESSION_ID, "ADVENT_OF_CODE_SESSION_ID missing"
 assert WEBHOOK_URL, "WEBHOOK_URL missing"
 
-WEBHOOK_MAX_CONTENT_LENGTH = int(os.getenv("WEBHOOK_MAX_CONTENT_LENGTH", "2000"))
 
-
-def get_leaderboard_enpoint(as_json_api=True):
+def get_leaderboard_endpoint(as_json_api=True):
     return LEADERBOARD_ENDPOINT_TEMPLATE.format(
         year=ADVENT_OF_CODE_YEAR,
         leaderboard_id=ADVENT_OF_CODE_LEADERBOARD_ID,
@@ -67,7 +68,7 @@ def save_cached_leaderboard(data):
 
 def fetch_leaderboard():
     response = requests.get(
-        get_leaderboard_enpoint(as_json_api=True),
+        get_leaderboard_endpoint(as_json_api=True),
         cookies={
             "session": ADVENT_OF_CODE_SESSION_ID
         }
@@ -93,8 +94,8 @@ def get_name(leaderboard, member_id):
 
 def send_webhook_notification(content):
     if len(content) > WEBHOOK_MAX_CONTENT_LENGTH:
-        content = "The diff is too big, check the leaderbord: {}".format(
-            get_leaderboard_enpoint(as_json_api=False)
+        content = "The diff is too big, check the leaderboard: {}".format(
+            get_leaderboard_endpoint(as_json_api=False)
         )
 
     requests.post(
@@ -113,7 +114,7 @@ def get_leaderboard_diff(old_leaderboard, new_leaderboard):
     )
 
 
-def main():
+def run():
     old_leaderboard = get_cached_leaderboard()
     new_leaderboard = fetch_leaderboard()
 
@@ -131,11 +132,21 @@ def main():
         for member_id, day, part in diff
     ]
 
-    print("Leaderboard chnaged:", messages)
+    print("Leaderboard changed:", messages)
 
     send_webhook_notification("\n".join(messages))
 
     save_cached_leaderboard(new_leaderboard)
+
+
+def main():
+    if LOOP_SLEEP_SECONDS <= 0:
+        run()
+        return
+    
+    while True:
+        run()
+        sleep(LOOP_SLEEP_SECONDS)
 
 
 if __name__ == "__main__":
