@@ -61,7 +61,7 @@ class TelegramSender(WebhookSender):
                 requests.post(
                     self.webhook_url,
                     json={
-                        "chat_id": self.chat_id,
+                        "chat_id": self.chat_id.strip(),
                         "text": content,
                     },
                     headers={"Content-Type": "application/json"},
