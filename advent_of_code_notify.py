@@ -13,7 +13,7 @@
 import json
 import logging
 import os
-from datetime import date
+from datetime import date, datetime
 from time import sleep
 
 import requests
@@ -89,10 +89,10 @@ def fetch_leaderboard():
 
 def get_leaderboard_set(leaderboard):
     return set(
-        (member_id, day, part)
+        (member_id, day, part, star_info["get_star_ts"])
         for member_id, member in leaderboard.get("members", {}).items()
-        for day, exercises in member.get("completion_day_level", {}).items()
-        for part in exercises.keys()
+        for day, parts in member.get("completion_day_level", {}).items()
+        for part, star_info in parts.items()
     )
 
 
@@ -115,6 +115,11 @@ def send_webhook(content):
     webhook_sender.send(content)
 
 
+def format_ts(ts: int) -> str:
+    # ts is unix timestamp in seconds
+    return datetime.fromtimestamp(ts).strftime(":%M:%S")
+
+
 def run():
     old_leaderboard = get_cached_leaderboard()
     new_leaderboard = fetch_leaderboard()
@@ -125,12 +130,19 @@ def run():
         logging.info("No changes detected.")
         return
 
-    messages = [
-        "{} solved day {} part {}".format(
-            get_name(new_leaderboard, member_id), day, part
-        )
-        for member_id, day, part in diff
-    ]
+    # sort by get_star_ts
+    diff.sort(key=lambda x: x[3])
+
+    messages = []
+    for member_id, day, part, when_ts in diff:
+        part_emoji = {
+            "1": "🔵",
+            "2": "🟡",
+        }.get(part, f"star {part}")
+        when = format_ts(when_ts)
+        member = get_name(new_leaderboard, member_id)
+
+        messages.append(f"Day {day}: {member} got {part_emoji} at {when}")
 
     logging.info(f"Leaderboard changed: {messages}")
 
