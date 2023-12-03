@@ -1,4 +1,10 @@
-# Advent of code leaderboard notifier
+# Advent of code leaderboard notifier (Telegram-enabled fork)
+
+This exists thanks to @tofran. The fork just adds the ability to send notifications to Telegram instead of Slack/Discord.
+
+---
+
+## Original README
 
 Send a webhook notification when someone from an Advent Of Code leaderboard solves a puzzle.
 
@@ -26,15 +32,14 @@ or pass the `LOOP_SLEEP_SECONDS` env var to make the script loop.
 
 ### Configuration
 
- - `ADVENT_OF_CODE_LEADERBOARD_ID`: The unique ID of the leaderboard. It's an integer you can get from the end of leaderboard url or the prefix of the invite code.
- - `ADVENT_OF_CODE_SESSION_ID`: Your advent of code session id.  
-    To retrieve it, visit adventofcode.com, open developer tools > storage > cookies > copy the value of your `session` cookie.
- - `WEBHOOK_URL`: Where to send the webhook. For example a Discord webhook URL.
- - `ADVENT_OF_CODE_YEAR`: Optional, defaults to the current year if already in december, otherwise the previous one.
- - `CACHE_FILE`: Optional, defaults to `./cache.json`
- - `LOOP_SLEEP_SECONDS`: Optional, defaults to `0`, meaning it only runs once and terminates the process. Otherwise set it to how many seconds to sleep between runs. It is recommended a value greater than `900` (15 min).
- - `WEBHOOK_MAX_CONTENT_LENGTH`: Optional, the maximum number of characters that can be sent to the webhook. Defaults to `2000`.
-
+- `ADVENT_OF_CODE_LEADERBOARD_ID`: The unique ID of the leaderboard. It's an integer you can get from the end of leaderboard url or the prefix of the invite code.
+- `ADVENT_OF_CODE_SESSION_ID`: Your advent of code session id.  
+   To retrieve it, visit adventofcode.com, open developer tools > storage > cookies > copy the value of your `session` cookie.
+- `WEBHOOK_URL`: Where to send the webhook. For example a Discord webhook URL.
+- `ADVENT_OF_CODE_YEAR`: Optional, defaults to the current year if already in december, otherwise the previous one.
+- `CACHE_FILE`: Optional, defaults to `./cache.json`
+- `LOOP_SLEEP_SECONDS`: Optional, defaults to `0`, meaning it only runs once and terminates the process. Otherwise set it to how many seconds to sleep between runs. It is recommended a value greater than `900` (15 min).
+- `WEBHOOK_MAX_CONTENT_LENGTH`: Optional, the maximum number of characters that can be sent to the webhook. Defaults to `2000`.
 
 ## License
 
