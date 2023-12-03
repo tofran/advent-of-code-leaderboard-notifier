@@ -22,19 +22,22 @@ $ docker run \
   -e ADVENT_OF_CODE_LEADERBOARD_ID="numeric leaderboard id" \
   -e CACHE_FILE="/cache/cache.json" \
   # (Optional) -e LOOP_SLEEP_SECONDS="900" \
+  # (Optional, runs it as a background service) --restart=unless-stopped -d \
   -v "$(pwd)/cache/:/cache/" \
-  ghcr.io/iburakov/advent-of-code-leaderboard-notifier
+  ghcr.io/iburakov/advent-of-code-leaderboard-notifier-telegram:main
 
 # Telegram
 $ docker run \
+  -e WEBHOOK_SENDER=telegram \
   -e WEBHOOK_TELEGRAM_URL="https://api.telegram.org/bot<token>/sendMessage" \
   -e WEBHOOK_TELEGRAM_CHAT_ID="chat_id_1,chat_id_2" \
   -e ADVENT_OF_CODE_SESSION_ID="your advent of code session id" \
   -e ADVENT_OF_CODE_LEADERBOARD_ID="numeric leaderboard id" \
   -e CACHE_FILE="/cache/cache.json" \
   # (Optional) -e LOOP_SLEEP_SECONDS="900" \
+  # (Optional, runs it as a background service) --restart=unless-stopped -d \
   -v "$(pwd)/cache/:/cache/" \
-  ghcr.io/iburakov/advent-of-code-leaderboard-notifier
+  ghcr.io/iburakov/advent-of-code-leaderboard-notifier-telegram:main
 
 ```
 
