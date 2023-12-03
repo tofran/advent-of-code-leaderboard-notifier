@@ -145,7 +145,11 @@ def main():
         return
 
     while True:
-        run()
+        try:
+            run()
+        except Exception:
+            logging.exception("error while running run()")
+
         logging.info(f"Sleeping {LOOP_SLEEP_SECONDS}s")
         sleep(LOOP_SLEEP_SECONDS)
 
