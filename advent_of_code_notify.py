@@ -6,13 +6,21 @@
 #
 # tofran, dec 2020
 # https://github.com/tofran/advent-of-code-leaderboard-notifier
+#
+# iburakov, dec 2023
+# - Telegram notifications
 
 import json
+import logging
 import os
 from datetime import date
 from time import sleep
 
 import requests
+
+from webhook_senders import DefaultSender, TelegramSender, WebhookSender
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 LEADERBOARD_ENDPOINT_TEMPLATE = (
     "https://adventofcode.com/"
@@ -34,11 +42,13 @@ ADVENT_OF_CODE_SESSION_ID = os.getenv("ADVENT_OF_CODE_SESSION_ID")
 ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", get_default_year()))
 LOOP_SLEEP_SECONDS = int(os.getenv("LOOP_SLEEP_SECONDS", "0"))
 WEBHOOK_MAX_CONTENT_LENGTH = int(os.getenv("WEBHOOK_MAX_CONTENT_LENGTH", "2000"))
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+WEBHOOK_SENDER_NAME = os.getenv("WEBHOOK_SENDER", "default")
 
 assert ADVENT_OF_CODE_LEADERBOARD_ID, "ADVENT_OF_CODE_LEADERBOARD_ID missing"
 assert ADVENT_OF_CODE_SESSION_ID, "ADVENT_OF_CODE_SESSION_ID missing"
-assert WEBHOOK_URL, "WEBHOOK_URL missing"
+
+webhook_senders = {"default": DefaultSender, "telegram": TelegramSender}
+webhook_sender: WebhookSender = webhook_senders[WEBHOOK_SENDER_NAME]()
 
 
 def get_leaderboard_endpoint(as_json_api=True):
@@ -69,9 +79,7 @@ def save_cached_leaderboard(data):
 def fetch_leaderboard():
     response = requests.get(
         get_leaderboard_endpoint(as_json_api=True),
-        cookies={
-            "session": ADVENT_OF_CODE_SESSION_ID
-        }
+        cookies={"session": ADVENT_OF_CODE_SESSION_ID},
     )
 
     response.raise_for_status()
@@ -92,26 +100,19 @@ def get_name(leaderboard, member_id):
     return leaderboard["members"][member_id]["name"]
 
 
-def send_webhook_notification(content):
+def get_leaderboard_diff(old_leaderboard, new_leaderboard):
+    return sorted(
+        get_leaderboard_set(new_leaderboard) - get_leaderboard_set(old_leaderboard)
+    )
+
+
+def send_webhook(content):
     if len(content) > WEBHOOK_MAX_CONTENT_LENGTH:
         content = "The diff is too big, check the leaderboard: {}".format(
             get_leaderboard_endpoint(as_json_api=False)
         )
 
-    requests.post(
-        WEBHOOK_URL,
-        json={
-            "content": content,
-        },
-        headers={"Content-Type": "application/json"}
-    ).raise_for_status()
-
-
-def get_leaderboard_diff(old_leaderboard, new_leaderboard):
-    return sorted(
-        get_leaderboard_set(new_leaderboard)
-        - get_leaderboard_set(old_leaderboard)
-    )
+    webhook_sender.send(content)
 
 
 def run():
@@ -121,21 +122,19 @@ def run():
     diff = get_leaderboard_diff(old_leaderboard, new_leaderboard)
 
     if not diff:
-        print("No changes detected.")
+        logging.info("No changes detected.")
         return
 
     messages = [
         "{} solved day {} part {}".format(
-            get_name(new_leaderboard, member_id),
-            day,
-            part
+            get_name(new_leaderboard, member_id), day, part
         )
         for member_id, day, part in diff
     ]
 
-    print("Leaderboard changed:", messages)
+    logging.info(f"Leaderboard changed: {messages}")
 
-    send_webhook_notification("\n".join(messages))
+    send_webhook("\n".join(messages))
 
     save_cached_leaderboard(new_leaderboard)
 
@@ -144,10 +143,10 @@ def main():
     if LOOP_SLEEP_SECONDS <= 0:
         run()
         return
-    
+
     while True:
         run()
-        print(f"Sleeping {LOOP_SLEEP_SECONDS}s")
+        logging.info(f"Sleeping {LOOP_SLEEP_SECONDS}s")
         sleep(LOOP_SLEEP_SECONDS)
 
 

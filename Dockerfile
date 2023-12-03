@@ -7,5 +7,5 @@ WORKDIR /app
 COPY ./requirements.txt ./
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY ./advent_of_code_notify.py ./advent_of_code_notify.py
+COPY ./*.py .
 CMD "./advent_of_code_notify.py"
