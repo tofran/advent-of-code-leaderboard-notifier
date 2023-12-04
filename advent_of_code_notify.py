@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # advent_of_code_notify.py
-# Send a webhook notification when someone from an Advent Of Code
+# Send a webhook or notification when someone from an Advent of Code
 # leaderboard solves a puzzle
 #
 # tofran and contributors, dec 2020
@@ -15,7 +15,7 @@ from time import sleep
 
 import requests
 
-from webhook_senders import DefaultSender, TelegramSender, WebhookSender
+from notification_senders import BaseNotificationSender, TelegramSender, WebhookSender
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -38,14 +38,17 @@ ADVENT_OF_CODE_LEADERBOARD_ID = os.getenv("ADVENT_OF_CODE_LEADERBOARD_ID")
 ADVENT_OF_CODE_SESSION_ID = os.getenv("ADVENT_OF_CODE_SESSION_ID")
 ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", get_default_year()))
 LOOP_SLEEP_SECONDS = int(os.getenv("LOOP_SLEEP_SECONDS", "0"))
+NOTIFICATION_SENDER_NAME = os.getenv("NOTIFICATION_SENDER", "webhook")
 WEBHOOK_MAX_CONTENT_LENGTH = int(os.getenv("WEBHOOK_MAX_CONTENT_LENGTH", "2000"))
-WEBHOOK_SENDER_NAME = os.getenv("WEBHOOK_SENDER", "default")
+# ^ rename to NOTIFICATION_ and break backwards compatibility? worth it?
 
 assert ADVENT_OF_CODE_LEADERBOARD_ID, "ADVENT_OF_CODE_LEADERBOARD_ID missing"
 assert ADVENT_OF_CODE_SESSION_ID, "ADVENT_OF_CODE_SESSION_ID missing"
 
-webhook_senders = {"default": DefaultSender, "telegram": TelegramSender}
-webhook_sender: WebhookSender = webhook_senders[WEBHOOK_SENDER_NAME]()
+notification_sender: BaseNotificationSender = {
+    "webhook": WebhookSender,
+    "telegram": TelegramSender,
+}[NOTIFICATION_SENDER_NAME]()
 
 
 def get_leaderboard_endpoint(as_json_api=True):
@@ -103,13 +106,13 @@ def get_leaderboard_diff(old_leaderboard, new_leaderboard):
     )
 
 
-def send_webhook(content):
+def send_notification(content):
     if len(content) > WEBHOOK_MAX_CONTENT_LENGTH:
         content = "The diff is too big, check the leaderboard: {}".format(
             get_leaderboard_endpoint(as_json_api=False)
         )
 
-    webhook_sender.send(content)
+    notification_sender.send(content)
 
 
 def format_ts(ts: int) -> str:
@@ -143,7 +146,7 @@ def run():
 
     logging.info(f"Leaderboard changed: {messages}")
 
-    send_webhook("\n".join(messages))
+    send_notification("\n".join(messages))
 
     save_cached_leaderboard(new_leaderboard)
 

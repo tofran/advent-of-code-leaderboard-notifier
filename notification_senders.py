@@ -5,7 +5,7 @@ from venv import logger
 import requests
 
 
-class WebhookSender(ABC):
+class BaseNotificationSender(ABC):
     # __init__() should load required parameters from env vars
 
     @abstractmethod
@@ -13,12 +13,10 @@ class WebhookSender(ABC):
         ...
 
 
-class DefaultSender(WebhookSender):
-    """
-    Sends a notification to Slack/Discord/etc.
+class WebhookSender(BaseNotificationSender):
+    """Sends a webhook notification to Slack/Discord/etc"""
 
-    Body is a JSON object with a "content" key.
-    """
+    webhook_url: str
 
     def __init__(self):
         self.webhook_url = os.getenv("WEBHOOK_URL")
@@ -34,34 +32,32 @@ class DefaultSender(WebhookSender):
         ).raise_for_status()
 
 
-class TelegramSender(WebhookSender):
-    """
-    Sends a notification to Telegram chats.
+class TelegramSender(BaseNotificationSender):
+    """Sends a notification to Telegram chats"""
 
-    Body is a JSON object with "chat_id" and "text" keys.
-    """
+    bot_token: str
+    chat_ids: list[str]
 
     def __init__(self):
-        self.webhook_url = os.getenv("WEBHOOK_TELEGRAM_URL")
-        assert self.webhook_url, (
-            "WEBHOOK_TELEGRAM_URL is missing, "
-            "https://api.telegram.org/bot<token>/sendMessage is expected."
-        )
+        self.bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+        assert self.bot_token, "TELEGRAM_BOT_TOKEN is missing, ask @BotFather for it."
 
-        self.chat_id = os.getenv("WEBHOOK_TELEGRAM_CHAT_ID")
-        assert self.chat_id, (
-            "WEBHOOK_TELEGRAM_CHAT_ID is missing, "
+        self.chat_ids = [
+            s.strip() for s in os.getenv("TELEGRAM_CHAT_IDS", []).split(",")
+        ]
+        assert self.chat_ids, (
+            "TELEGRAM_CHAT_IDS is missing, "
             "a comma-separated list of chat IDs to send notification to is expected "
             "(see https://core.telegram.org/bots/api#sendmessage)."
         )
 
     def send(self, content):
-        for chat_id in self.chat_id.split(","):
+        for chat_id in self.chat_ids.split(","):
             try:
                 requests.post(
-                    self.webhook_url,
+                    f"https://api.telegram.org/bot{self.bot_token}/sendMessage",
                     json={
-                        "chat_id": self.chat_id.strip(),
+                        "chat_id": self.chat_ids.strip(),
                         "text": content,
                     },
                     headers={"Content-Type": "application/json"},

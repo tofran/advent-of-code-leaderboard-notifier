@@ -1,6 +1,6 @@
 # Advent of Code leaderboard notifier (Telegram-enabled fork)
 
-Send a webhook notification when someone from an Advent Of Code leaderboard solves a puzzle.
+Send a webhook or notification when someone from an Advent of Code leaderboard solves a puzzle.
 
 This is a fork of [tofran/advent-of-code-leaderboard-notifier](https://github.com/tofran/advent-of-code-leaderboard-notifier) that:
 
@@ -28,9 +28,9 @@ $ docker run \
 
 # Telegram
 $ docker run \
-  -e WEBHOOK_SENDER=telegram \
-  -e WEBHOOK_TELEGRAM_URL="https://api.telegram.org/bot<token>/sendMessage" \
-  -e WEBHOOK_TELEGRAM_CHAT_ID="chat_id_1,chat_id_2" \
+  -e NOTIFICATION_SENDER=telegram \
+  -e TELEGRAM_BOT_TOKEN="bot token" \
+  -e TELEGRAM_CHAT_IDS="chat_id_1,chat_id_2" \
   -e ADVENT_OF_CODE_SESSION_ID="your advent of code session id" \
   -e ADVENT_OF_CODE_LEADERBOARD_ID="numeric leaderboard id" \
   -e CACHE_FILE="/cache/cache.json" \
@@ -52,17 +52,17 @@ or pass the `LOOP_SLEEP_SECONDS` env var to make the script loop.
 - `ADVENT_OF_CODE_YEAR`: Optional, defaults to the current year if already in december, otherwise the previous one.
 - `CACHE_FILE`: Optional, defaults to `./cache.json`
 - `LOOP_SLEEP_SECONDS`: Optional, defaults to `0`, meaning it only runs once and terminates the process. Otherwise set it to how many seconds to sleep between runs. It is recommended a value greater than `900` (15 min).
-- `WEBHOOK_MAX_CONTENT_LENGTH`: Optional, the maximum number of characters that can be sent to the webhook. Defaults to `2000`.
-- `WEBHOOK_SENDER`: Optional, allows to select a non-default webhook sender. Can be set to `telegram` to send notifications to Telegram instead. Each webhook sender has its own params. See below and in `webhook_senders.py` for more info.
+- `WEBHOOK_MAX_CONTENT_LENGTH`: Optional, the maximum number of characters that can be sent. Defaults to `2000`.
+- `NOTIFICATION_SENDER`: Optional, allows to select a custom notification sender. Default - `webhook`. Can be set to `telegram` to send notifications to Telegram instead. Each notification sender has its own params. See below and in `notification_senders.py` for more info.
 
-`default` webhook sender params:
+`webhook` notification sender params:
 
 - `WEBHOOK_URL`: Where to send the webhook. For example, a Discord webhook URL.
 
-`telegram` webhook sender params:
+`telegram` notification sender params:
 
-- `WEBHOOK_TELEGRAM_URL`: The URL of your Telegram bot's webhook. Usually it's `https://api.telegram.org/bot<token>/sendMessage`. Ask [BotFather](https://t.me/botfather) for a token.
-- `WEBHOOK_TELEGRAM_CHAT_ID`: comma-separated list of chat IDs to send notifications to. See [Telegram docs](https://core.telegram.org/bots/api#sendmessage) for more info. You can find them using bots like [@JsonDumpBot](https://t.me/JsonDumpBot).
+- `TELEGRAM_BOT_TOKEN`: Your Telegram bot token. Ask [@BotFather](https://t.me/botfather) for it.
+- `TELEGRAM_CHAT_IDS`: Comma-separated list of chat IDs to send notifications to. See [Telegram docs](https://core.telegram.org/bots/api#sendmessage) for more info. You can find them by writing/forwarding messages to bots like [@JsonDumpBot](https://t.me/JsonDumpBot).
 
 ## License
 
