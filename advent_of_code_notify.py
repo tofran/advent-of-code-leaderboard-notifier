@@ -10,7 +10,7 @@
 import json
 import logging
 import os
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from time import sleep
 
 import requests
@@ -44,7 +44,7 @@ NOTIFICATION_SENDER_NAME = os.getenv("NOTIFICATION_SENDER", "webhook")
 
 NOTIFICATION_PATTERN_EMOJIS = os.getenv("NOTIFICATION_PATTERN_EMOJIS", "🌱🎄")
 NOTIFICATION_PATTERN = os.getenv(
-    "NOTIFICATION_PATTERN", "Day {day}: {member} got {part_emoji} at {when}"
+    "NOTIFICATION_PATTERN", "Day {day}: {member} got {part_emoji} after {after}"
 )
 NOTIFICATION_2_PATTERN = os.getenv("NOTIFICATION_2_PATTERN", NOTIFICATION_PATTERN)
 
@@ -121,9 +121,27 @@ def send_notification(content):
     notification_sender.send(content)
 
 
-def format_ts(ts: int) -> str:
-    # ts is unix timestamp in seconds
+def format_unix_ts(ts: int) -> str:
     return datetime.fromtimestamp(ts).strftime(":%M:%S")
+
+
+def format_unix_timedelta(td: int) -> str:
+    td = int(td)
+    if td < 0:
+        return "-" + format_unix_timedelta(-td)
+
+    d, mod = divmod(td, 86400)
+    h, mod = divmod(mod, 3600)
+    m, s = divmod(mod, 60)
+    hms = f"{h:02}:{m:02}:{s:02}"
+    return f"{d}d {hms}" if d else hms
+
+
+def find_day_start_ts(day: int) -> int:
+    day = int(day)
+    # December X, UTC-5 midnight = 05:00 UTC
+    moment = datetime(ADVENT_OF_CODE_YEAR, 12, day, hour=5, tzinfo=UTC)
+    return int(moment.timestamp())
 
 
 def run():
@@ -140,7 +158,7 @@ def run():
     diff.sort(key=lambda x: x[3])
 
     messages = []
-    for member_id, day, part, when_ts in diff:
+    for member_id, day, part, mmss_ts in diff:
         emojis = NOTIFICATION_PATTERN_EMOJIS
         part_index = int(part) - 1
 
@@ -150,11 +168,14 @@ def run():
                 member_id=member_id,
                 member=get_name(new_leaderboard, member_id),
                 day=day,
-                when=format_ts(when_ts),
                 part=part,
                 part_emoji=(
                     emojis[part_index] if 0 <= part_index <= len(emojis) else part
                 ),
+                # :mm:ss
+                mmss=format_unix_ts(mmss_ts),
+                # [d] hh:mm:ss since this day's puzzle publication
+                after=format_unix_timedelta(mmss_ts - find_day_start_ts(day)),
             )
         )
 
