@@ -52,14 +52,14 @@ class TelegramSender(BaseNotificationSender):
         )
 
     def send(self, content):
-        for chat_id in self.chat_ids.split(","):
+        for chat_id in self.chat_ids:
             try:
                 requests.post(
                     f"https://api.telegram.org/bot{self.bot_token}/sendMessage",
-                    json={
-                        "chat_id": self.chat_ids.strip(),
-                        "text": content,
-                    },
+                    json=dict(
+                        chat_id=chat_id,
+                        text=content,
+                    ),
                     headers={"Content-Type": "application/json"},
                 ).raise_for_status()
             except Exception:
