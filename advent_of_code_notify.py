@@ -195,7 +195,7 @@ def main():
         try:
             run()
         except Exception:
-            logging.exception("error while running run()")
+            logging.exception("error while doing run()")
 
         logging.info(f"Sleeping {LOOP_SLEEP_SECONDS}s")
         sleep(LOOP_SLEEP_SECONDS)
