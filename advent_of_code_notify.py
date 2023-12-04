@@ -38,9 +38,15 @@ ADVENT_OF_CODE_LEADERBOARD_ID = os.getenv("ADVENT_OF_CODE_LEADERBOARD_ID")
 ADVENT_OF_CODE_SESSION_ID = os.getenv("ADVENT_OF_CODE_SESSION_ID")
 ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", get_default_year()))
 LOOP_SLEEP_SECONDS = int(os.getenv("LOOP_SLEEP_SECONDS", "0"))
-NOTIFICATION_SENDER_NAME = os.getenv("NOTIFICATION_SENDER", "webhook")
 WEBHOOK_MAX_CONTENT_LENGTH = int(os.getenv("WEBHOOK_MAX_CONTENT_LENGTH", "2000"))
 # ^ rename to NOTIFICATION_ and break backwards compatibility? worth it?
+NOTIFICATION_SENDER_NAME = os.getenv("NOTIFICATION_SENDER", "webhook")
+
+NOTIFICATION_PATTERN_EMOJIS = os.getenv("NOTIFICATION_PATTERN_EMOJIS", "🌱🎄")
+NOTIFICATION_PATTERN = os.getenv(
+    "NOTIFICATION_PATTERN", "Day {day}: {member} got {part_emoji} at {when}"
+)
+NOTIFICATION_2_PATTERN = os.getenv("NOTIFICATION_2_PATTERN", NOTIFICATION_PATTERN)
 
 assert ADVENT_OF_CODE_LEADERBOARD_ID, "ADVENT_OF_CODE_LEADERBOARD_ID missing"
 assert ADVENT_OF_CODE_SESSION_ID, "ADVENT_OF_CODE_SESSION_ID missing"
@@ -135,14 +141,22 @@ def run():
 
     messages = []
     for member_id, day, part, when_ts in diff:
-        part_emoji = {
-            "1": "🔵",
-            "2": "🟡",
-        }.get(part, f"star {part}")
-        when = format_ts(when_ts)
-        member = get_name(new_leaderboard, member_id)
+        emojis = NOTIFICATION_PATTERN_EMOJIS
+        part_index = int(part) - 1
 
-        messages.append(f"Day {day}: {member} got {part_emoji} at {when}")
+        pattern = NOTIFICATION_PATTERN if part == "1" else NOTIFICATION_2_PATTERN
+        messages.append(
+            pattern.format(
+                member_id=member_id,
+                member=get_name(new_leaderboard, member_id),
+                day=day,
+                when=format_ts(when_ts),
+                part=part,
+                part_emoji=(
+                    emojis[part_index] if 0 <= part_index <= len(emojis) else part
+                ),
+            )
+        )
 
     logging.info(f"Leaderboard changed: {messages}")
 
