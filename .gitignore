@@ -1,4 +1,7 @@
 .env
+env
+
 cache.json
+
 .vscode
 *.pyc
