@@ -4,11 +4,8 @@
 # Send a webhook notification when someone from an Advent Of Code
 # leaderboard solves a puzzle
 #
-# tofran, dec 2020
+# tofran and contributors, dec 2020
 # https://github.com/tofran/advent-of-code-leaderboard-notifier
-#
-# iburakov, dec 2023
-# - Telegram notifications
 
 import json
 import logging
