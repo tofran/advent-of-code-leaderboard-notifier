@@ -39,12 +39,11 @@ ADVENT_OF_CODE_SESSION_ID = os.getenv("ADVENT_OF_CODE_SESSION_ID")
 ADVENT_OF_CODE_YEAR = int(os.getenv("ADVENT_OF_CODE_YEAR", get_default_year()))
 LOOP_SLEEP_SECONDS = int(os.getenv("LOOP_SLEEP_SECONDS", "0"))
 WEBHOOK_MAX_CONTENT_LENGTH = int(os.getenv("WEBHOOK_MAX_CONTENT_LENGTH", "2000"))
-# ^ rename to NOTIFICATION_ and break backwards compatibility? worth it?
 NOTIFICATION_SENDER_NAME = os.getenv("NOTIFICATION_SENDER", "webhook")
 
-NOTIFICATION_PATTERN_EMOJIS = os.getenv("NOTIFICATION_PATTERN_EMOJIS", "🌱🎄")
+NOTIFICATION_PATTERN_EMOJIS = os.getenv("NOTIFICATION_PATTERN_EMOJIS", "⭐🌟")
 NOTIFICATION_PATTERN = os.getenv(
-    "NOTIFICATION_PATTERN", "Day {day}: {member} got {part_emoji} after {after}"
+    "NOTIFICATION_PATTERN", "Day {day}: {member} solved {part_emoji} after {after}"
 )
 NOTIFICATION_2_PATTERN = os.getenv("NOTIFICATION_2_PATTERN", NOTIFICATION_PATTERN)
 
@@ -130,7 +129,7 @@ def format_unix_timedelta(td: int) -> str:
     if td < 0:
         return "-" + format_unix_timedelta(-td)
 
-    d, mod = divmod(td, 86400)
+    d, mod = divmod(td, 3600 * 24)
     h, mod = divmod(mod, 3600)
     m, s = divmod(mod, 60)
     hms = f"{h:02}:{m:02}:{s:02}"
