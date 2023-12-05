@@ -2,8 +2,8 @@
 
 Send a webhook or notification when someone from an Advent of Code leaderboard solves a puzzle.
 
-This can be very useful to track the progress of a group of friends, or co-workers on Discord,
-Telegram, Slack, etc.
+This can be very useful to track the progress of a group of friends/co-workers on Discord,
+Telegram, Slack, etc. It makes the challenge more engaging and competitive.
 
 ![Example discord notification](https://user-images.githubusercontent.com/5692603/100946056-738cae80-34fa-11eb-833f-645b8ea2e116.png)
 
@@ -42,8 +42,8 @@ $ docker run \
   -e ADVENT_OF_CODE_SESSION_ID="your advent of code session id" \
   -e ADVENT_OF_CODE_LEADERBOARD_ID="numeric leaderboard id" \
   -e CACHE_FILE="/cache/cache.json" \
-  -v "$(pwd)/cache/:/cache/" \
   # (Same optional env vars, see below)
+  -v "$(pwd)/cache/:/cache/" \
   ghcr.io/tofran/advent-of-code-leaderboard-notifier
 ```
 
@@ -83,7 +83,7 @@ Defaults to `Day {day}: {member} solved {part_emoji} after {after}`. Supported k
 #### - `NOTIFICATION_2_PATTERN` (optional)
 
 Defaults to the current value of `NOTIFICATION_PATTERN`.
-Overrides the notification text for the 2dn puzzle only.
+Overrides the notification text for the 2nd puzzle only.
 Example: `{member} solved the 🎉🍾 SECOND 🎄💥 part of day {day}!!!`
 
 #### - `NOTIFICATION_PATTERN_EMOJIS` (optional)
